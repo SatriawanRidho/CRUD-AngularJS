@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD with AngularJS</title>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.1.0.slim.min.js"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- Angular JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+</head>
+<body ng-app="CrudApp" ng-controller="CrudCtrl">
+
+<div class="container">
+
+    <h2>Kota</h2>
+    
+    <p ng-if="msg" class="alert alert-success">   
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        {{msg}}
+    </p>
+        <form>
+        <div class="form-group">
+            <input type="text" ng-model="data.nama_kota" class="form-control">
+        </div>
+        <div class="form-group">
+            <input type="button" value="Add" ng-click="addKota()">
+            <!-- input hidden -->
+            <input type="hidden" ng-model="data.id">
+            <!-- button cancel -->
+            <span ng-if="btn == 'Update'">
+            <button type="button" ng-click="selectKota()">Cancel</button>
+            </span>
+        </div>
+    </form>
+
+    <table class="table">
+        <tr>
+           <th>ID</th>
+           <th>Nama Kota</th>
+        </tr>
+        <!-- jika data murid tidak kosong -->
+        <tr ng-if="murid.length !=0"  ng-repeat="student in murid">
+           <td>{{ student.id }}</td>
+           <td>{{ student.nama_kota }}</td>
+           <td>
+                <button ng-click="editKota(student.id)">Edit</button> |
+                <button ng-click="deleteKota(student.id)" onclick="return confirm('Apakah anda yakin?')">Delete</button>
+           </td>
+        </tr>
+        <!-- jika data murid kosong -->
+        <tr ng-if="murid.length == 0">
+           <td colspan="3">Tidak ada data.</td>
+        </tr>
+    </table>
+
+</div>
+
+<script type="text/javascript">
+
+    // buat module
+    var app = angular.module('CrudApp', []);
+
+    // buat controller                  // import class/object dari angular
+    app.controller('CrudCtrl', function($scope, $http) {
+
+        $scope.data = {};
+        $scope.btn = 'Add';
+        $scope.data.id = null;
+
+
+        // request server                                           // feedback
+        $http.get('http://localhost/angularcrud/select.php').success(function(data) {
+
+            // passing ke view
+            $scope.murid = data;
+
+        });
+
+        // method untuk tambah kota
+        $scope.addKota = function() {
+            // request server
+            $http.post('http://localhost/angularcrud/insert.php',
+                       $scope.data).success(function() {
+
+                // passing ke view
+                if($scope.btn == 'Add') {
+                    $scope.msg = 'Kota berhasil ditambahkan.';
+                } else {
+                    $scope.msg = 'Kota berhasil diubah.';
+                }
+                $scope.select.kota();
+                $scope.data.nama_kota = null;
+
+            });
+        }
+
+        // method untuk menampilkan kota
+        $scope.selectKota = function() {
+            $http.get('http://localhost/angularcrud/select.php').success(function(data) {
+
+                // passing ke view
+                $scope.murid = data;
+                $scope.btn = 'Add';
+                $scope.data.nama_kota = null;
+                $scope.data.id = null;
+
+            });
+        }
+
+        $scope.deleteKota = function(id) {
+            $http.get('http://localhost/angularcrud/delete.php?id='+id).success(function() {
+
+                // passing ke view
+                $scope.msg = 'Kota berhasil dihapus.';
+                $scope.select.kota();
+
+            });
+        }
+        
+        $scope.editKota = function(id) {
+            $http.get('http://localhost/angularcrud/select.php?id='+id).success(function(data) {
+                
+                $scope.btn = 'Update';
+                $scope.data.nama_kota = data.nama_kota;
+                $scope.data.id = data.id;
+                
+            });
+        }
+
+    });
+
+</script>
+
+</body>
+</html>
